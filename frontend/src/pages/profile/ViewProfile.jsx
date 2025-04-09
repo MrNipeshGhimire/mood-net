@@ -3,9 +3,20 @@ import AuthContext from "../../context/AuthContext";
 import axios from "axios";
 import Navbar from "../../components/Navbar";
 import Footer from "../home/Footer";
+import PopupMessage from "../../context/PopupMessage";
 
 function ViewProfile() {
     const { user, isAuthenticated } = useContext(AuthContext);
+
+    //=====for popup message=============/
+    const [popup, setPopup] = useState({ visible: false, message: "" });
+
+    const showPopup = (msg) => {
+      setPopup({ visible: true, message: msg });
+      setTimeout(() => {
+        setPopup({ visible: false, message: "" });
+      }, 3000); // Auto-close after 3 seconds
+    };
   
   const [formData, setFormData] = useState({
     first_name: "",
@@ -50,7 +61,7 @@ function ViewProfile() {
     axios
       .put(`http://127.0.0.1:8000/api/user/${user.id}/`, formData)
       .then((response) => {
-        alert("Profile updated successfully!");
+        showPopup("Profile updated successfully!");
         // Optionally, you can update the user context if needed
       })
       .catch((error) => {
@@ -144,6 +155,12 @@ function ViewProfile() {
         </div>
       </form>
     </div>
+    {popup.visible && (
+  <PopupMessage
+    message={popup.message}
+    onClose={() => setPopup({ visible: false, message: "" })}
+  />
+)}
     <Footer/>
     </>
   );

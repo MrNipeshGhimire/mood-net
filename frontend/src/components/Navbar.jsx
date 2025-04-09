@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import AuthContext from "../context/AuthContext";
 import axios from "axios";
 import { Bell } from "lucide-react";
+import ConfirmPopup from "../context/ConfirmPopup";
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -13,26 +14,46 @@ function Navbar() {
   const { user, logout, loading } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);      
-  };
+  //=====for popup message=============/
+ 
+  const [showConfirm, setShowConfirm] = useState(false);
 
-  const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
-    setIsNotificationOpen(false); // Close notifications dropdown when user menu is open
-  };
+    const handleLogout = () => {
+      setShowConfirm(true);
+    };
 
-  const toggleNotification = () => {
-    setIsNotificationOpen(!isNotificationOpen);
-    setIsDropdownOpen(false); // Close user menu dropdown when notification is open
-  };
+    const confirmLogout = () => {
+      logout();  // Call your logout function here
+      setShowConfirm(false);
+    };
 
-  const handleLogout = () => {
-    const confirmLogout = window.confirm("Are you sure you want to logout?");
-    if (confirmLogout) {
-      logout();
-    }
-  };
+    const cancelLogout = () => {
+      setShowConfirm(false);
+    };
+
+
+
+
+      const toggleMenu = () => {
+        setIsMenuOpen(!isMenuOpen);      
+      };
+
+      const toggleDropdown = () => {
+        setIsDropdownOpen(!isDropdownOpen);
+        setIsNotificationOpen(false); // Close notifications dropdown when user menu is open
+      };
+
+      const toggleNotification = () => {
+        setIsNotificationOpen(!isNotificationOpen);
+        setIsDropdownOpen(false); // Close user menu dropdown when notification is open
+      };
+
+      // const handleLogout = () => {
+      //   const confirmLogout = window.confirm("Are you sure you want to logout?");
+      //   if (confirmLogout) {
+      //     logout();
+      //   }
+      // };
 
   useEffect(() => {
     if (user) {
@@ -67,6 +88,8 @@ function Navbar() {
   }
 
   return (
+    <>
+
     <header className="bg-white shadow-lg py-4 sticky top-0 z-50">
       <div className="container mx-auto flex items-center justify-between px-4">
         {/* Logo */}
@@ -224,6 +247,14 @@ function Navbar() {
         </nav>
       </div>
     </header>
+    {showConfirm && (
+  <ConfirmPopup
+    message="Are you sure you want to logout?"
+    onConfirm={confirmLogout}
+    onCancel={cancelLogout}
+  />
+)}
+    </>
     
   );
 }

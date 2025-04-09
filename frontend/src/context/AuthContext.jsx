@@ -1,6 +1,7 @@
 import { createContext, useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import PopupMessage from "./PopupMessage";
 
 const AuthContext = createContext();
 
@@ -9,34 +10,28 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [tokens, setTokens] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [popup, setPopup] = useState(null); // 💡 Popup state
 
-  // ✅ Load user & tokens from localStorage on app start
   useEffect(() => {
     const storedTokens = localStorage.getItem("authTokens");
     const storedUser = localStorage.getItem("user");
 
-    if (storedTokens) {
-      setTokens(JSON.parse(storedTokens));
-    }
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    if (storedTokens) setTokens(JSON.parse(storedTokens));
+    if (storedUser) setUser(JSON.parse(storedUser));
 
-    if (storedTokens) {
-      refreshToken();
-    } else {
-      setLoading(false);
-    }
+    if (storedTokens) refreshToken();
+    else setLoading(false);
   }, []);
 
-  // ✅ Ensure localStorage updates when user state changes
   useEffect(() => {
-    if (user) {
-      localStorage.setItem("user", JSON.stringify(user));
-    }
+    if (user) localStorage.setItem("user", JSON.stringify(user));
   }, [user]);
 
-  // ✅ LOGIN FUNCTION
+  const showPopup = (message) => {
+    setPopup(message);
+    setTimeout(() => setPopup(null), 3000); // hide after 3s
+  };
+
   const login = async (formData) => {
     try {
       const response = await axios.post("http://127.0.0.1:8000/api/auth/login/", formData);
@@ -49,43 +44,39 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("user", JSON.stringify(user));
 
       navigate("/");
-      alert("Login Successful!");
+      showPopup("Login Successful! ✅");
     } catch (error) {
       console.error("Login failed", error.response?.data);
-      alert("Login Failed!");
+      showPopup("Login Failed ❌");
     }
   };
 
-  // ✅ REGISTER FUNCTION
   const register = async (formData) => {
     try {
       await axios.post("http://127.0.0.1:8000/api/auth/register/", formData);
-      alert("Registration Successful! Please log in.");
+      showPopup("Registration Successful! Please log in.");
       navigate("/login");
     } catch (error) {
       console.error("Registration failed", error.response?.data);
-      alert("Registration Failed!");
+      showPopup("Registration Failed!");
     }
   };
 
-  // ✅ LOGOUT FUNCTION (Updated)
-const logout = async () => {
-  try {
-    await axios.post("http://127.0.0.1:8000/api/auth/logout/");
-  } catch (error) {
-    console.error("Logout failed", error.response?.data);
-  }
+  const logout = async () => {
+    try {
+      await axios.post("http://127.0.0.1:8000/api/auth/logout/");
+    } catch (error) {
+      console.error("Logout failed", error.response?.data);
+    }
 
-  // Clear local storage & state
-  setTokens(null);
-  setUser(null);
-  localStorage.removeItem("authTokens");
-  localStorage.removeItem("user");
+    setTokens(null);
+    setUser(null);
+    localStorage.removeItem("authTokens");
+    localStorage.removeItem("user");
 
-  navigate("/");
-};
+    navigate("/");
+  };
 
-  // ✅ TOKEN REFRESH FUNCTION
   const refreshToken = async () => {
     if (!tokens?.refresh) {
       logout();
@@ -110,7 +101,8 @@ const logout = async () => {
 
   return (
     <AuthContext.Provider value={{ user, login, register, logout, isAuthenticated: !!user }}>
-      {!loading && children} {/* Prevent rendering until loading is done */}
+      {!loading && children}
+      {popup && <PopupMessage message={popup} onClose={() => setPopup(null)} />}
     </AuthContext.Provider>
   );
 };

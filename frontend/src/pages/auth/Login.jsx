@@ -2,6 +2,7 @@ import { useState, useContext } from "react";
 //import AuthContext from "../context/AuthContext";
 import { Link } from "react-router-dom";
 import AuthContext from "../../context/AuthContext";
+import { Toaster } from "react-hot-toast";
 
 
 const Login = () => {
@@ -13,7 +14,7 @@ const Login = () => {
 
   return (
     <>
-  
+  <Toaster/>
     {/* <h2 className="text-red-500" >Hello</h2>
     <div>
       <h2>Login</h2>
